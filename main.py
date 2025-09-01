@@ -34,7 +34,7 @@ def main():
 def generate_content(client, messages, verbose):
     chat_completion = client.chat.completions.create(
         messages=messages,
-        model="llama3-8b-8192",
+        model="compound-beta",
     )
 
     print(chat_completion.choices[0].message.content)
