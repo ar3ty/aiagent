@@ -1,6 +1,24 @@
 import os
 from config import MAX_CHARS
 
+schema_get_file_content = {
+            "type": "function",
+            "function": {
+                "name": "get_file_content",
+                "description": f"Returns file content in the specified directory, constrained to the working directory. If length exceeds {MAX_CHARS} symbols, adds to the end mark that the file is truncated",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "Path to the file to get content from, relative to the working directory.",
+                        }
+                    },
+                    "required": ["file_path"]
+                }
+            }
+        }
+
 def get_file_content(working_directory, file_path):
     try:
         abs_path = os.path.abspath(working_directory)

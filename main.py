@@ -1,19 +1,9 @@
-import os, sys, json
+import os, sys
 from dotenv import load_dotenv
-from groq import Groq, types
-from functions.get_files_info import schema_get_files_info
+from groq import Groq
+from tools import system_prompt, available_tools, call_function
 
 def main():
-    system_prompt = """
-You are a helpful AI coding agent.
-
-When a user asks a question or makes a request, make a function call plan. You can perform the following operations:
-
-- List files and directories
-
-All paths you provide should be relative to the working directory. You do not need to specify the working directory in your function calls as it is automatically injected for security reasons.
-"""
-
     verbose = "--verbose" in sys.argv
     args = []
     for arg in sys.argv[1:]:
@@ -42,11 +32,21 @@ All paths you provide should be relative to the working directory. You do not ne
         }
     ]
 
-    tools = [
-        schema_get_files_info
-    ]
+    tools = available_tools
 
-    generate_content(client, messages, tools, verbose)
+    for i in range(20):
+        try:
+            result = generate_content(client, messages, tools, verbose)
+            if isinstance(result, str):
+                print("Final response:")
+                print(result)
+                break
+            messages = result
+        except Exception as e:
+            print(f"Error: {e}")
+    
+    if i == 20:
+        print('max iterations limit is reached')
 
 
 def generate_content(client, messages, tools, verbose):
@@ -57,16 +57,36 @@ def generate_content(client, messages, tools, verbose):
         tool_choice="auto"
     )
 
-    calls = chat_completion.choices[0].message.tool_calls
-    if calls:
-        for call in calls:
-            to_print = f"Calling function: {call.function.name}( {call.function.arguments})"
-            to_print = to_print.replace('"', "'")
-            print(to_print)
-    print(chat_completion.choices[0].message.content)
     if verbose:
         print(f"Prompt tokens: {chat_completion.usage.prompt_tokens}")
-        print(f"Response tokens: {chat_completion.usage.completion_tokens}")
+        print(f"Completion tokens: {chat_completion.usage.completion_tokens}")
+
+    for choice in chat_completion.choices:
+        messages.append(choice.message)
+
+    calls = chat_completion.choices[0].message.tool_calls
+
+    if not calls:
+        return chat_completion.choices[0].message.content
+
+    function_responses = []
+    for call in calls:
+        result = call_function(call, verbose)
+        if len(result) == 0:
+            raise Exception(f"smth is wrong: no content in result of function {call.function.name}")
+        if verbose:
+            print(f"-> {result}")
+        result_message = {
+            "tool_call_id": call.id,
+            "role": "tool",
+            "name": call.function.name,
+            "content": result
+        }
+        
+        function_responses.append(result_message)
+        messages.append(result_message)
+    
+    return messages
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,27 @@
 import os
 
+schema_write_file = {
+            "type": "function",
+            "function": {
+                "name": "write_file",
+                "description": "Write provided content in the specified file, constrained to the working directory.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": {
+                            "type": "string",
+                            "description": "Path to the file to write content in, relative to the working directory.",
+                        },
+                        "content": {
+                            "type": "string",
+                            "description": "Content to write into the file.",
+                        }
+                    },
+                    "required": ["file_path", "content"]
+                }
+            }
+        }
+
 def write_file(working_directory, file_path, content):
     try:
         abs_path = os.path.abspath(working_directory)
