@@ -1,4 +1,5 @@
 import os
+from config import MAX_CHARS
 
 def get_file_content(working_directory, file_path):
     try:
@@ -11,10 +12,10 @@ def get_file_content(working_directory, file_path):
             return f'Error: File not found or is not a regular file: "{file_path}"'
 
         with open(target_path, "r", encoding="utf-8") as f:
-            buffer = f.read(10000)
+            buffer = f.read(MAX_CHARS + 1)
 
-        if len(buffer) == 10000:
-            buffer += f'[...File "{file_path}" truncated at 10000 characters]'
+        if len(buffer) > MAX_CHARS:
+            buffer += f'[...File "{file_path}" truncated at {MAX_CHARS} characters]'
 
         return buffer
     except Exception as e:

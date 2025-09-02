@@ -1,5 +1,22 @@
 import os
 
+schema_get_files_info = {
+            "type": "function",
+            "function": {
+                "name": "get_files_info",
+                "description": "Lists files in the specified directory along with their sizes, constrained to the working directory.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "directory": {
+                            "type": "string",
+                            "description": "Directory to list from, relative to the working directory. Use '.' for root.",
+                        }
+                    },
+                    "required": ["directory"]
+                }
+            }
+        }
 
 def get_files_info(working_directory, directory="."):
     try:
